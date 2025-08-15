@@ -1,0 +1,6 @@
+[workspace]
+resolver = "3"
+members = ["keys_lib", "keys_server", "keys_client"]
+
+[workspace.dependencies]
+serde = { version = "1.0.219", features = ["derive"] }
