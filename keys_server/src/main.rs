@@ -1,13 +1,13 @@
 use std::{env, fmt::Debug, fs::Permissions, os::unix::fs::PermissionsExt, path::PathBuf};
 
-use axum::{extract::{Path, State}, routing::{get, post}, serve::Listener, Json};
+use axum::serve::Listener;
 use clap::{Args, Parser};
 use dotenvy::dotenv;
-use keys_lib::KeyValue;
 use sqlx::SqlitePool;
 use tokio::net::{TcpListener, UnixListener};
 
 mod db;
+mod key;
 
 #[derive(Parser)]
 struct Cli {
@@ -45,7 +45,9 @@ async fn main() {
 
         let listener = UnixListener::bind(path.clone()).unwrap();
 
-        tokio::fs::set_permissions(path, Permissions::from_mode(0o775)).await.unwrap();
+        tokio::fs::set_permissions(path, Permissions::from_mode(0o775))
+            .await
+            .unwrap();
 
         serve_with_listener(listener).await;
     }
@@ -65,18 +67,8 @@ where
     let state = AppState { pool };
 
     let app = axum::Router::<AppState>::new()
-        .route("/{key}", get(get_key_value))
-        .route("/{key}/{value}", post(set_key_value))
+        .nest("/key", key::get_router())
         .with_state(state);
 
     axum::serve(listener, app).await.unwrap();
-}
-
-pub async fn get_key_value(State(state): State<AppState>, Path(key): Path<String>) -> Json<KeyValue> {
-    Json(db::get_key_value(&state.pool, key).await.unwrap())
-}
-
-pub async fn set_key_value(State(state): State<AppState>, Path((key, value)): Path<(String, String)>) -> Json<KeyValue> {
-    db::upsert_key_value(&state.pool, &key, value).await.unwrap();
-    Json(db::get_key_value(&state.pool, key).await.unwrap())
 }
