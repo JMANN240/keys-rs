@@ -1,7 +1,9 @@
 use std::{env, fmt::Debug, fs::Permissions, os::unix::fs::PermissionsExt, path::PathBuf};
 
+use aes_gcm::{Aes256Gcm, KeyInit};
 use axum::serve::Listener;
-use clap::{Args, Parser};
+use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
+use clap::{Args, Parser, Subcommand};
 use dotenvy::dotenv;
 use sqlx::SqlitePool;
 use tokio::net::{TcpListener, UnixListener};
@@ -11,6 +13,18 @@ mod key;
 
 #[derive(Parser)]
 struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Serve(ServeArgs),
+    KeyGen,
+}
+
+#[derive(Args)]
+pub struct ServeArgs {
     #[command(flatten)]
     listen: Listen,
 }
@@ -35,9 +49,16 @@ async fn main() {
     let cli = Cli::parse();
     dotenv().unwrap();
 
-    if let Some(port) = cli.listen.port {
+    match cli.command {
+        Commands::Serve(serve_args) => serve(serve_args).await,
+        Commands::KeyGen => generate_key(),
+    }
+}
+
+async fn serve(args: ServeArgs) {
+    if let Some(port) = args.listen.port {
         serve_with_listener(TcpListener::bind(format!("0.0.0.0:{port}")).await.unwrap()).await;
-    } else if let Some(path) = cli.listen.uds {
+    } else if let Some(path) = args.listen.uds {
         let _ = tokio::fs::remove_file(&path).await;
         tokio::fs::create_dir_all(path.parent().unwrap())
             .await
@@ -71,4 +92,10 @@ where
         .with_state(state);
 
     axum::serve(listener, app).await.unwrap();
+}
+
+pub fn generate_key() {
+    let key = Aes256Gcm::generate_key(aes_gcm::aead::OsRng);
+    let base64_key = STANDARD_NO_PAD.encode(key);
+    println!("Your master key is \"{base64_key}\". Store this securely, as it is used to encrypt and decrypt all values in the database.");
 }

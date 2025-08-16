@@ -1,2 +1,2 @@
 DROP TABLE key_values;
-DROP TABLE key_stores;
+DROP TABLE api_keys;

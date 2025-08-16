@@ -1,15 +1,19 @@
 use axum::{
     Json, Router,
     extract::{Path, State},
+    http::StatusCode,
     routing::{get, post},
 };
 use axum_extra::{
     TypedHeader,
     headers::{Authorization, authorization::Bearer},
 };
-use keys_lib::{KeyStore, KeyValue};
+use keys_lib::{ApiKey, KeyValue};
 
-use crate::{AppState, db};
+use crate::{
+    AppState,
+    db::{self, key_value::DbKeyValue},
+};
 
 pub fn get_router() -> Router<AppState> {
     Router::new()
@@ -21,43 +25,69 @@ pub async fn get_key_value(
     TypedHeader(authorization): TypedHeader<Authorization<Bearer>>,
     State(state): State<AppState>,
     Path(key): Path<String>,
-) -> Json<KeyValue> {
-    Json(
-        db::get_key_value(&state.pool, authorization.token(), key)
-            .await
-            .unwrap(),
-    )
+) -> Result<Json<KeyValue>, StatusCode> {
+    match ApiKey::from_base64(authorization.token()) {
+        Ok(api_key) => {
+            let maybe_db_key_value = db::key_value::get_db_key_value(&state.pool, &api_key, &key)
+                .await
+                .unwrap();
+
+            Ok(Json(match maybe_db_key_value {
+                Some(db_key_value) => db_key_value.into(),
+                None => KeyValue::new(key, None::<&str>),
+            }))
+        }
+        Err(_) => Err(StatusCode::UNAUTHORIZED),
+    }
 }
 
 pub async fn set_key_value(
     TypedHeader(authorization): TypedHeader<Authorization<Bearer>>,
     State(state): State<AppState>,
     Path((key, value)): Path<(String, String)>,
-) -> Json<KeyValue> {
-    db::upsert_key_value(
-        &state.pool,
-        KeyValue::new(KeyStore::new(authorization.token()), &key, Some(value)),
-    )
-    .await
-    .unwrap();
-    Json(
-        db::get_key_value(&state.pool, authorization.token(), key)
+) -> Result<Json<KeyValue>, StatusCode> {
+    match ApiKey::from_base64(authorization.token()) {
+        Ok(api_key) => {
+            db::key_value::upsert_db_key_value(
+                &state.pool,
+                &DbKeyValue::new(&api_key, key.clone(), &value),
+            )
             .await
-            .unwrap(),
-    )
+            .unwrap();
+
+            let maybe_db_key_value = db::key_value::get_db_key_value(&state.pool, &api_key, &key)
+                .await
+                .unwrap();
+
+            Ok(Json(match maybe_db_key_value {
+                Some(db_key_value) => db_key_value.into(),
+                None => KeyValue::new(key, None::<&str>),
+            }))
+        }
+        Err(_) => Err(StatusCode::UNAUTHORIZED),
+    }
 }
 
 pub async fn delete_key_value(
     TypedHeader(authorization): TypedHeader<Authorization<Bearer>>,
     State(state): State<AppState>,
     Path(key): Path<String>,
-) -> Json<KeyValue> {
-    db::delete_key_value(&state.pool, authorization.token(), &key)
-        .await
-        .unwrap();
-    Json(
-        db::get_key_value(&state.pool, authorization.token(), key)
-            .await
-            .unwrap(),
-    )
+) -> Result<Json<KeyValue>, StatusCode> {
+    match ApiKey::from_base64(authorization.token()) {
+        Ok(api_key) => {
+            db::key_value::delete_db_key_value(&state.pool, &api_key, &key)
+                .await
+                .unwrap();
+
+            let maybe_db_key_value = db::key_value::get_db_key_value(&state.pool, &api_key, &key)
+                .await
+                .unwrap();
+
+            Ok(Json(match maybe_db_key_value {
+                Some(db_key_value) => db_key_value.into(),
+                None => KeyValue::new(key, None::<&str>),
+            }))
+        }
+        Err(_) => Err(StatusCode::UNAUTHORIZED),
+    }
 }
