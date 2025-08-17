@@ -7,7 +7,7 @@ use clap::{Args, Parser, Subcommand};
 use dotenvy::dotenv;
 use sqlx::SqlitePool;
 use tokio::net::{TcpListener, UnixListener};
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 
 mod api;
 mod db;
@@ -91,7 +91,7 @@ where
     let app = axum::Router::<AppState>::new()
         .nest("/key_value", api::key_value::get_router())
         .nest("/api_key", api::api_key::get_router())
-        .layer(CorsLayer::permissive().allow_headers([AUTHORIZATION]))
+        .layer(CorsLayer::permissive().allow_headers(Any))
         .with_state(state);
 
     axum::serve(listener, app).await.unwrap();
