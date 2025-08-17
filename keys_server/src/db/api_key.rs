@@ -37,7 +37,7 @@ pub async fn insert_db_api_key(
     Ok(())
 }
 
-pub async fn delete_db_api_key(
+pub async fn _delete_db_api_key(
     pool: &SqlitePool,
     api_key: &ApiKey,
 ) -> Result<(), sqlx::Error> {

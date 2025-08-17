@@ -2,7 +2,7 @@ use axum::{
     Json, Router,
     extract::{Path, State},
     http::StatusCode,
-    routing::{get, post},
+    routing::get,
 };
 use axum_extra::{
     TypedHeader,

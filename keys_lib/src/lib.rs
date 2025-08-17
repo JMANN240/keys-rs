@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use base64::{engine::general_purpose::URL_SAFE, DecodeSliceError, Engine as _};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, DecodeSliceError, Engine as _};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
@@ -57,12 +57,12 @@ impl ApiKey {
 
     pub fn from_base64<S: AsRef<str>>(base64_api_key: S) -> Result<Self, DecodeSliceError> {
         let mut bytes = [0u8; 32];
-        URL_SAFE.decode_slice(base64_api_key.as_ref(), &mut bytes)?;
+        URL_SAFE_NO_PAD.decode_slice(base64_api_key.as_ref(), &mut bytes)?;
         Ok(Self::from_bytes(bytes))
     }
 
     pub fn to_base64(&self) -> String {
-        URL_SAFE.encode(self.bytes)
+        URL_SAFE_NO_PAD.encode(self.bytes)
     }
 
     pub fn hash(&self) -> Vec<u8> {
