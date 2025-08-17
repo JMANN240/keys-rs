@@ -80,6 +80,24 @@ impl DbKeyValue {
     }
 }
 
+pub async fn get_db_key_values(
+    pool: &SqlitePool,
+    api_key: &ApiKey,
+) -> Result<Vec<DbKeyValue>, sqlx::Error> {
+    let api_key_hash_bytes = api_key.hash();
+    let api_key_hash_base64 = STANDARD_NO_PAD.encode(api_key_hash_bytes);
+
+    let db_key_values = query_as!(
+        DbKeyValue,
+        "SELECT * FROM key_values WHERE api_key_hash_base64 = ?",
+        api_key_hash_base64,
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(db_key_values)
+}
+
 pub async fn get_db_key_value<K: AsRef<str>>(
     pool: &SqlitePool,
     api_key: &ApiKey,

@@ -17,8 +17,25 @@ use crate::{
 
 pub fn get_router() -> Router<AppState> {
     Router::new()
+        .route("/", get(get_all_key_values))
         .route("/{key}", get(get_key_value).delete(delete_key_value))
         .route("/{key}/{value}", post(set_key_value))
+}
+
+pub async fn get_all_key_values(
+    TypedHeader(authorization): TypedHeader<Authorization<Bearer>>,
+    State(state): State<AppState>,
+) -> Result<Json<Vec<KeyValue>>, StatusCode> {
+    match ApiKey::from_base64(authorization.token()) {
+        Ok(api_key) => {
+            let db_key_values = db::key_value::get_db_key_values(&state.pool, &api_key)
+                .await
+                .unwrap();
+
+            Ok(Json(db_key_values.into_iter().map(|db_key_value| db_key_value.into()).collect()))
+        }
+        Err(_) => Err(StatusCode::UNAUTHORIZED),
+    }
 }
 
 pub async fn get_key_value(
