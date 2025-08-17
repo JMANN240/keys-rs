@@ -8,8 +8,8 @@ use dotenvy::dotenv;
 use sqlx::SqlitePool;
 use tokio::net::{TcpListener, UnixListener};
 
+mod api;
 mod db;
-mod key;
 
 #[derive(Parser)]
 struct Cli {
@@ -88,7 +88,8 @@ where
     let state = AppState { pool };
 
     let app = axum::Router::<AppState>::new()
-        .nest("/key", key::get_router())
+        .nest("/key_value", api::key_value::get_router())
+        .nest("/api_key", api::api_key::get_router())
         .with_state(state);
 
     axum::serve(listener, app).await.unwrap();

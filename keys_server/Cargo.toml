@@ -11,6 +11,7 @@ base64 = { workspace = true }
 clap = { version = "4.5.45", features = ["derive"] }
 dotenvy = "0.15.7"
 keys-lib = { path = "../keys_lib" }
+rand = { workspace = true }
 serde = { workspace = true }
 sqlx = { version = "0.8.6", features = ["runtime-tokio", "sqlite"] }
 tokio = { version = "1.47.1", features = ["full"] }
