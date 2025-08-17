@@ -9,6 +9,7 @@ use axum_extra::{
     headers::{Authorization, authorization::Bearer},
 };
 use keys_lib::{ApiKey, KeyValue};
+use serde::Deserialize;
 
 use crate::{
     AppState,
@@ -18,8 +19,7 @@ use crate::{
 pub fn get_router() -> Router<AppState> {
     Router::new()
         .route("/", get(get_all_key_values))
-        .route("/{key}", get(get_key_value).delete(delete_key_value))
-        .route("/{key}/{value}", post(set_key_value))
+        .route("/{key}", get(get_key_value).post(set_key_value).delete(delete_key_value))
 }
 
 pub async fn get_all_key_values(
@@ -58,10 +58,16 @@ pub async fn get_key_value(
     }
 }
 
+#[derive(Deserialize)]
+pub struct SetKeyValueRequest {
+    value: String,
+}
+
 pub async fn set_key_value(
     TypedHeader(authorization): TypedHeader<Authorization<Bearer>>,
     State(state): State<AppState>,
-    Path((key, value)): Path<(String, String)>,
+    Path(key): Path<String>,
+    Json(SetKeyValueRequest { value }): Json<SetKeyValueRequest>,
 ) -> Result<Json<KeyValue>, StatusCode> {
     match ApiKey::from_base64(authorization.token()) {
         Ok(api_key) => {
