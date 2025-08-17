@@ -482,6 +482,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
+name = "dotenvy"
+version = "0.15.7"
+source = "git+https://github.com/allan2/dotenvy#86c0d6dd2938e615135813df9e3274bf8f42c455"
+
+[[package]]
 name = "either"
 version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1118,7 +1123,7 @@ name = "keys-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
- "dotenvy",
+ "dotenvy 0.15.7 (git+https://github.com/allan2/dotenvy)",
  "keys-client",
  "tokio",
 ]
@@ -1154,7 +1159,7 @@ dependencies = [
  "axum-extra",
  "base64",
  "clap",
- "dotenvy",
+ "dotenvy 0.15.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "keys-lib",
  "rand 0.9.2",
  "serde",
@@ -2022,7 +2027,7 @@ version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19a9c1841124ac5a61741f96e1d9e2ec77424bf323962dd894bdb93f37d5219b"
 dependencies = [
- "dotenvy",
+ "dotenvy 0.15.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "either",
  "heck",
  "hex",
@@ -2054,7 +2059,7 @@ dependencies = [
  "bytes",
  "crc",
  "digest",
- "dotenvy",
+ "dotenvy 0.15.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "either",
  "futures-channel",
  "futures-core",
@@ -2094,7 +2099,7 @@ dependencies = [
  "bitflags",
  "byteorder",
  "crc",
- "dotenvy",
+ "dotenvy 0.15.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "etcetera",
  "futures-channel",
  "futures-core",

@@ -1,10 +1,12 @@
 [package]
 name = "keys-cli"
+description = "A CLI for the Keys key-value store"
+license = "MIT OR Apache-2.0"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.45", features = ["derive"] }
-dotenvy = "0.15.7"
+dotenvy = { git = "https://github.com/allan2/dotenvy" }
 keys-client = { path = "../keys_client" }
 tokio = { version = "1.47.1", features = ["full"] }
