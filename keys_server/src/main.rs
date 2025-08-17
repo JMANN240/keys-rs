@@ -1,13 +1,13 @@
 use std::{env, fmt::Debug, fs::Permissions, os::unix::fs::PermissionsExt, path::PathBuf};
 
 use aes_gcm::{Aes256Gcm, KeyInit};
-use axum::{http::header::AUTHORIZATION, serve::Listener};
+use axum::{http::header::{AUTHORIZATION, CONTENT_TYPE}, serve::Listener};
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
 use clap::{Args, Parser, Subcommand};
 use dotenvy::dotenv;
 use sqlx::SqlitePool;
 use tokio::net::{TcpListener, UnixListener};
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 
 mod api;
 mod db;
@@ -91,7 +91,7 @@ where
     let app = axum::Router::<AppState>::new()
         .nest("/key_value", api::key_value::get_router())
         .nest("/api_key", api::api_key::get_router())
-        .layer(CorsLayer::permissive().allow_headers(Any))
+        .layer(CorsLayer::permissive().allow_headers([AUTHORIZATION, CONTENT_TYPE]))
         .with_state(state);
 
     axum::serve(listener, app).await.unwrap();
