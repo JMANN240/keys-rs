@@ -1,7 +1,6 @@
-use std::path::PathBuf;
+use std::{collections::HashMap, path::PathBuf};
 
 use clap::{Args, Parser, Subcommand};
-use dotenvy::{EnvLoader, EnvSequence};
 use keys_client::KeysClient;
 
 #[derive(Parser)]
@@ -41,9 +40,26 @@ async fn main() {
             println!("{:?}", client.delete_value(&key).await);
         },
         Commands::Migrate(MigrateArgs { path }) => {
-            let env = EnvLoader::with_path(path).sequence(EnvSequence::InputOnly).load().unwrap();
+            let pre_vars = std::env::vars().collect::<HashMap<String, String>>();
+            dotenvy::from_path_override(path).unwrap();
+            let post_vars = std::env::vars();
 
-            for (key, value) in env.iter() {
+            let file_vars = post_vars.filter_map(|(post_key, post_value)| {
+                match pre_vars.get(&post_key) {
+                    Some(pre_value) => {
+                        if pre_value != &post_value {
+                            Some((post_key, post_value))
+                        } else {
+                            None
+                        }
+                    },
+                    None => {
+                        Some((post_key, post_value))
+                    }
+                }
+            }).collect::<HashMap<String, String>>();
+
+            for (key, value) in file_vars.iter() {
                 let key_value = client.get_value(&key).await.unwrap();
 
                 match key_value.get_value() {
