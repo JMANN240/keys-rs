@@ -1124,13 +1124,26 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "dotenvy 0.15.7 (git+https://github.com/allan2/dotenvy)",
- "keys-client",
+ "keys-client 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio",
 ]
 
 [[package]]
 name = "keys-client"
 version = "0.1.0"
+dependencies = [
+ "keys-lib 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "url",
+]
+
+[[package]]
+name = "keys-client"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f294dac5a0e22b5ecdaccd3dd1f4850ccdb3db11093977db4363c1f3cd32ce90"
 dependencies = [
  "keys-lib 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest",
