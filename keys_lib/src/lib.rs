@@ -1,8 +1,10 @@
+use std::fmt::Display;
+
 use base64::{engine::general_purpose::URL_SAFE, DecodeSliceError, Engine as _};
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeyValue {
     key: String,
     value: Option<String>,
@@ -28,6 +30,16 @@ impl KeyValue {
     }
 }
 
+impl Display for KeyValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.get_value() {
+            Some(value) => write!(f, "{}: {}", self.get_key(), value),
+            None => write!(f, "{}", self.get_key()),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct ApiKey {
     bytes: [u8; 32],
 }
@@ -43,9 +55,9 @@ impl ApiKey {
         Self { bytes }
     }
 
-    pub fn from_base64(base64_api_key: &str) -> Result<Self, DecodeSliceError> {
+    pub fn from_base64<S: AsRef<str>>(base64_api_key: S) -> Result<Self, DecodeSliceError> {
         let mut bytes = [0u8; 32];
-        URL_SAFE.decode_slice(base64_api_key, &mut bytes)?;
+        URL_SAFE.decode_slice(base64_api_key.as_ref(), &mut bytes)?;
         Ok(Self::from_bytes(bytes))
     }
 

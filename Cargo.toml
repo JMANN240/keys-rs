@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["keys_lib", "keys_server", "keys_client"]
+members = ["keys_cli", "keys_client", "keys_lib", "keys_server"]
 
 [workspace.dependencies]
 base64 = "0.22.1"
